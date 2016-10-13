@@ -5,10 +5,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.io.PrintWriter;
+import java.io.FileWriter;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
@@ -38,6 +41,32 @@ public class RSALibrary {
 
       final KeyPairGenerator keyGen = KeyPairGenerator.getInstance(ALGORITHM);
       keyGen.initialize(1024);
+      KeyPair keyPair = keyGen.generateKeyPair();
+
+      File privateKey = new File("pruebapriv.key");
+      File publicKey = new File("pruebapub.key");
+
+      if(privateKey.getParentFile() != null){
+        privateKey.getParentFile().mkdirs();
+      }
+      privateKey.createNewFile();
+
+      if(publicKey.getParentFile() != null){
+        publicKey.getParentFile().mkdirs();
+      }
+      publicKey.createNewFile();
+
+      ObjectOutputStream privateKeyOS = new ObjectOutputStream(
+              new FileOutputStream(privateKey));
+      privateKeyOS.writeObject(keyPair.getPrivate());
+      privateKeyOS.close();
+
+      ObjectOutputStream publicKeyOS = new ObjectOutputStream(
+              new FileOutputStream(publicKey));
+      publicKeyOS.writeObject(keyPair.getPublic());
+      publicKeyOS.close();
+
+      // TODO: solve encoding issue
 
 	  // TO-DO: Use KeyGen to generate a public and a private key
       // ...
@@ -50,8 +79,19 @@ public class RSALibrary {
 
 	} catch (NoSuchAlgorithmException e) {
 		System.out.println("Exception: " + e.getMessage());
+        e.printStackTrace();
 		System.exit(-1);
 	}
+  }
+
+  public static void main (String[] args) {
+      RSALibrary rsa = new RSALibrary();
+      try {
+          rsa.generateKeys();
+      } catch(IOException e) {
+        System.err.println("error");
+      }
+
   }
 
 
