@@ -58,15 +58,13 @@ public class RSALibrary {
 
       ObjectOutputStream privateKeyOS = new ObjectOutputStream(
               new FileOutputStream(privateKey));
-      privateKeyOS.writeObject(keyPair.getPrivate());
+      privateKeyOS.writeObject(keyPair.getPrivate().toString());
       privateKeyOS.close();
 
       ObjectOutputStream publicKeyOS = new ObjectOutputStream(
               new FileOutputStream(publicKey));
-      publicKeyOS.writeObject(keyPair.getPublic());
+      publicKeyOS.writeObject(keyPair.getPublic().toString()); //encoding
       publicKeyOS.close();
-
-      // TODO: solve encoding issue
 
 	  // TO-DO: Use KeyGen to generate a public and a private key
       // ...
