@@ -114,20 +114,19 @@ public class RSALibrary {
     }
 
     public PrivateKey readPrivate(String filePriv) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+        PKCS8EncodedKeySpec privateS;
+        KeyFactory key;
         try {
-            PKCS8EncodedKeySpec privateS = new PKCS8EncodedKeySpec(readFile(PRIVATE_KEY_FILE));
-            KeyFactory key = KeyFactory.getInstance(ALGORITHM);
+            privateS = new PKCS8EncodedKeySpec(readFile(PRIVATE_KEY_FILE));
+            key = KeyFactory.getInstance(ALGORITHM);
             return key.generatePrivate(privateS);
-
-
-
-    } catch (NoSuchAlgorithmException) {
-        System.err.println("Algorithm error, check the implementatio");
-    } catch (IOException){
-        System.err.println("I/O error with " + publicS);
-    } catch (InvalidKeySpecException) {
-        System.err.println("Invalid key " + key);
-    }
+        } catch (NoSuchAlgorithmException) {
+            System.err.println("Algorithm error, check the implementatio");
+        } catch (IOException){
+            System.err.println("I/O error with " + privateS);
+        } catch (InvalidKeySpecException) {
+            System.err.println("Invalid key " + key);
+        }
     }
 
 
