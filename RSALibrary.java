@@ -66,7 +66,7 @@ public class RSALibrary {
         }
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         RSALibrary rsa = new RSALibrary();
         try {
             final String originalText = "Text to be encrypted ";
@@ -78,20 +78,14 @@ public class RSALibrary {
 
         } catch (InvalidKeySpecException e) {
             System.err.println("Key error, check Key pair generation and encoding");
-        } catch (NoSuchAlgorithmException) {
-            System.err.println("Algorithm error, check the implementation");
         }
 
     }
 
     public byte[] readFile(String file) throws IOException {
         Path path;
-        try {
-            path = Paths.get(file);
-            return Files.readAllBytes(path);
-        } catch (IOException) {
-            System.err.println("I/O error with " + path);
-        }
+        path = Paths.get(file);
+        return Files.readAllBytes(path);
 
     }
 
@@ -99,34 +93,18 @@ public class RSALibrary {
         X509EncodedKeySpec publicS;
         KeyFactory key;
 
-        try {
-            publicS = new X509EncodedKeySpec(readFile(PUBLIC_KEY_FILE));
-            key = KeyFactory.getInstance(ALGORITHM);
-            return key.generatePublic(publicS);
-        } catch (NoSuchAlgorithmException) {
-            System.err.println("Algorithm error, check the implementatio");
-        } catch (IOException){
-            System.err.println("I/O error with " + publicS);
-        } catch (InvalidKeySpecException) {
-            System.err.println("Invalid key " + key);
-        }
+        publicS = new X509EncodedKeySpec(readFile(PUBLIC_KEY_FILE));
+        key = KeyFactory.getInstance(ALGORITHM);
+        return key.generatePublic(publicS);
 
     }
 
     public PrivateKey readPrivate(String filePriv) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
         PKCS8EncodedKeySpec privateS;
         KeyFactory key;
-        try {
-            privateS = new PKCS8EncodedKeySpec(readFile(PRIVATE_KEY_FILE));
-            key = KeyFactory.getInstance(ALGORITHM);
-            return key.generatePrivate(privateS);
-        } catch (NoSuchAlgorithmException) {
-            System.err.println("Algorithm error, check the implementatio");
-        } catch (IOException){
-            System.err.println("I/O error with " + privateS);
-        } catch (InvalidKeySpecException) {
-            System.err.println("Invalid key " + key);
-        }
+        privateS = new PKCS8EncodedKeySpec(readFile(PRIVATE_KEY_FILE));
+        key = KeyFactory.getInstance(ALGORITHM);
+        return key.generatePrivate(privateS);
     }
 
 
