@@ -1,14 +1,7 @@
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import javax.crypto.Cipher;
 
 
@@ -18,18 +11,16 @@ public class RSALibrary {
     public final String ALGORITHM = "RSA";
 
     //String to hold the name of the private key file.
-    public static final String PRIVATE_KEY_FILE = "private.key";
+    public static final String PRIVATE_KEY_FILE = "./private.key";
 
     // String to hold name of the public key file.
-    public static final String PUBLIC_KEY_FILE = "public.key";
+    public static final String PUBLIC_KEY_FILE = "./public.key";
 
 
-    /***********************************************************************************/
   /* Generates an RSA key pair (a public and a private key) of 1024 bits length */
   /* Stores the keys in the files defined by PUBLIC_KEY_FILE and PRIVATE_KEY_FILE */
   /* Throws IOException */
 
-    /***********************************************************************************/
     public void generateKeys() throws IOException {
 
         try {
@@ -38,26 +29,18 @@ public class RSALibrary {
             keyGen.initialize(1024);
             KeyPair keyPair = keyGen.generateKeyPair();
 
-            File privateKey = new File(PRIVATE_KEY_FILE);
-            File publicKey = new File(PUBLIC_KEY_FILE);
+            PrivateKey privateKey = keyPair.getPrivate();
+            PublicKey publicKey = keyPair.getPublic(); 
 
-            if (privateKey.getParentFile() != null) {
-                privateKey.getParentFile().mkdirs();
-            }
-            privateKey.createNewFile();
-
-            if (publicKey.getParentFile() != null) {
-                publicKey.getParentFile().mkdirs();
-            }
-            publicKey.createNewFile();
-
-            ObjectOutputStream privateKeyOS = new ObjectOutputStream(new FileOutputStream(privateKey));
-            privateKeyOS.writeObject(keyPair.getPrivate().getEncoded());
-            privateKeyOS.close();
-
-            ObjectOutputStream publicKeyOS = new ObjectOutputStream(new FileOutputStream(publicKey));
-            publicKeyOS.writeObject(keyPair.getPublic().getEncoded());
-            publicKeyOS.close();
+              FileOutputStream privateFileOutputStream = new FileOutputStream(PRIVATE_KEY_FILE);
+              ObjectOutputStream privateOutputStream = new ObjectOutputStream(privateFileOutputStream);
+              privateOutputStream.writeObject(privateKey);
+              privateOutputStream.close();
+                
+              FileOutputStream publicFileOutputStream = new FileOutputStream(PUBLIC_KEY_FILE);
+              ObjectOutputStream publicOutputStream = new ObjectOutputStream(publicFileOutputStream);
+              publicOutputStream.writeObject(publicKey);
+              publicOutputStream.close();
 
         } catch (NoSuchAlgorithmException e) {
             System.out.println("Exception: " + e.getMessage());
@@ -66,54 +49,11 @@ public class RSALibrary {
         }
     }
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        RSALibrary rsa = new RSALibrary();
-        try {
-            final String originalText = "Text to be encrypted ";
-            rsa.generateKeys();
-            PublicKey pub = rsa.readPublic(PUBLIC_KEY_FILE);
-            PrivateKey priv = rsa.readPrivate(PRIVATE_KEY_FILE);
-            rsa.encrypt(originalText.getBytes(), pub);
-            rsa.decrypt(originalText.getBytes(), priv);
 
-        } catch (InvalidKeySpecException e) {
-            System.err.println("Key error, check Key pair generation and encoding");
-        }
-
-    }
-
-    public byte[] readFile(String file) throws IOException {
-        Path path;
-        path = Paths.get(file);
-        return Files.readAllBytes(path);
-
-    }
-
-    public PublicKey readPublic(String filePublic) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-        X509EncodedKeySpec publicS;
-        KeyFactory key;
-
-        publicS = new X509EncodedKeySpec(readFile(PUBLIC_KEY_FILE));
-        key = KeyFactory.getInstance(ALGORITHM);
-        return key.generatePublic(publicS);
-
-    }
-
-    public PrivateKey readPrivate(String filePriv) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-        PKCS8EncodedKeySpec privateS;
-        KeyFactory key;
-        privateS = new PKCS8EncodedKeySpec(readFile(PRIVATE_KEY_FILE));
-        key = KeyFactory.getInstance(ALGORITHM);
-        return key.generatePrivate(privateS);
-    }
-
-
-    /***********************************************************************************/
   /* Encrypts a plaintext using an RSA public key. */
   /* Arguments: the plaintext and the RSA public key */
   /* Returns a byte array with the ciphertext */
 
-    /***********************************************************************************/
     public byte[] encrypt(byte[] plaintext, PublicKey key) {
 
         byte[] ciphertext = null;
@@ -130,16 +70,13 @@ public class RSALibrary {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(ciphertext);
         return ciphertext;
     }
 
-    /***********************************************************************************/
     /* Decrypts a ciphertext using an RSA private key. */
     /* Arguments: the ciphertext and the RSA private key */
     /* Returns a byte array with the plaintext */
 
-    /***********************************************************************************/
     public byte[] decrypt(byte[] ciphertext, PrivateKey key) {
 
         byte[] plaintext = null;
@@ -159,15 +96,13 @@ public class RSALibrary {
         return plaintext;
     }
 
-    /***********************************************************************************/
     /* Signs a plaintext using an RSA private key. */
     /* Arguments: the plaintext and the RSA private key */
     /* Returns a byte array with the signature */
 
-    /***********************************************************************************/
     public byte[] sign(byte[] plaintext, PrivateKey key) {
 
-        byte[] signedInfo = null; // TODO
+        byte[] signedInfo = null;
 
         try {
             // Gets a Signature object
@@ -175,7 +110,7 @@ public class RSALibrary {
 
             signature.initSign(key);
             signature.update(plaintext);
-            signature.sign();
+            signedInfo = signature.sign();
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -184,13 +119,11 @@ public class RSALibrary {
         return signedInfo;
     }
 
-    /***********************************************************************************/
   /* Verifies a signature over a plaintext */
   /* Arguments: the plaintext, the signature to be verified (signed) 
   /* and the RSA public key */
   /* Returns TRUE if the signature was verified, false if not */
 
-    /***********************************************************************************/
     public boolean verify(byte[] plaintext, byte[] signed, PublicKey key) {
 
         boolean result = false;
@@ -200,18 +133,14 @@ public class RSALibrary {
             // Gets a Signature object
             Signature signature = Signature.getInstance("SHA1withRSA");
 
+            // initialize the signature object with the public key
             signature.initVerify(key);
+
+            //set plaintext as the bytes to be verified
+            signature.update(plaintext);
+
+            // Verify the signature (signed). Store the outcome in the boolean result
             result = signature.verify(signed);
-            System.out.println("Verified -> " + result);
-
-            // TO-DO: initialize the signature object with the public key
-            // ...
-
-            // TO-DO: set plaintext as the bytes to be verified
-            // ...
-
-            // TO-DO: verify the signature (signed). Store the outcome in the boolean result
-            // ...
 
         } catch (Exception ex) {
             ex.printStackTrace();
